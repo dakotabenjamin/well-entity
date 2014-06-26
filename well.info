@@ -1,0 +1,3 @@
+name = Well
+description = The well entity, containing the metadata for watermonitor wells.
+core = 7.x

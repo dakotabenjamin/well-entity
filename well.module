@@ -1,0 +1,10 @@
+<?php
+
+/**
+ * @file
+ * Well entity
+ */
+ 
+/**
+ * Implements hook_schema().
+**/
