@@ -1,0 +1,67 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the entity_test module.
+ */
+
+/**
+  * Implements hook_schema().
+  */
+function well_schema() {
+  $schema['well'] = array (
+    'description' => 'The main store for our entity',
+    'fields' => array(
+      'wid' => array(
+        'description' => 'Primary key for our table of wells',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'giscode' => array(
+        'description' => 'The GIS Code for the well. e.g. AC01',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE
+      ),
+      'reservation' => array(
+        'description' => 'The name of the reservation the well is located',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'wellname' => array(
+        'description' => 'The name of the well',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'serial' => array(
+        'description' => 'The serial for the well',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'model' => array(
+        'description' => 'The well model',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'The well type, eg. GW or SW',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'calibration' => array(
+        'description' => 'The name of the well',
+        'type' => 'float',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('wid'),
+  );
+  
+  return $schema;
+}

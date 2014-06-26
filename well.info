@@ -1,3 +1,8 @@
 name = Well
 description = The well entity, containing the metadata for watermonitor wells.
 core = 7.x
+version = 7.x-0.1
+files[] = well_entity.module
+files[] = well_entity.install
+dependencies[] = entity
+project = entity
