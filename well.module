@@ -384,10 +384,10 @@ function well_type_delete_multiple($task_type_ids) {
 }
 
 // Create wrapper around the node.
-$wrapper = entity_metadata_wrapper('node', $node);
+//$wrapper = entity_metadata_wrapper('node', $node);
 
 // We can do it also using only $nid.
-$wrapper = entity_metadata_wrapper('node', $nid); //what is $nid??
+$wrapper = entity_metadata_wrapper('node', $wid); //what is $nid??
 
 // Get the value of field_name of the nodes author's profile.
 $wrapper->author->profile->field_name->value();
