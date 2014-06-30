@@ -1,6 +1,6 @@
 <?php
 
-class WellController extends DrupalDefaultEntityController{
+class WellController extends EntityAPIController {
   public function save($well) {
     drupal_write_record('well', $well);
     field_attach_insert('well', $well);
@@ -8,4 +8,4 @@ class WellController extends DrupalDefaultEntityController{
     return $well;
   }
 
-} //EntityAPIController {}
+} 
