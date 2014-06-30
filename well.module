@@ -198,3 +198,13 @@ function well_add_form_submit($form, &$form_state) {
 function well_save(&$well) {
   return entity_get_controller('well')->save($well);
 }
+
+class WellController extends EntityAPIController {
+  public function save($well) {
+    drupal_write_record('well', $well);
+    field_attach_insert('well', $well);
+    module_invoke_all('entity_insert', 'well', $well);
+    return $well;
+  }
+
+} 
