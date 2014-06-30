@@ -43,7 +43,7 @@ function well_entity_info() {
   $return['well_type'] = array(
     'label' => t('Well Type'),
     'entity class' => 'WellType',
-    'controller class' => 'WellTaskTypeController',
+    'controller class' => 'WellTypeController',
     'base table' => 'well_type',
     'fieldable' => FALSE,
     'bundle of' => 'well',
@@ -221,7 +221,7 @@ function well_permission() {
 }
 
 /**
-* Task class.
+* Well class.
 */
 class Well extends Entity {
   protected function defaultLabel() {
@@ -387,27 +387,27 @@ function well_type_delete_multiple($task_type_ids) {
 //$wrapper = entity_metadata_wrapper('node', $node);
 
 // We can do it also using only $nid.
-$wrapper = entity_metadata_wrapper('node', $wid); //what is $nid??
+//$wrapper = entity_metadata_wrapper('node', $nid); //what is $nid??
 
 // Get the value of field_name of the nodes author's profile.
-$wrapper->author->profile->field_name->value();
-$wrapper->author->profile->field_name->set('New name');
+//$wrapper->author->profile->field_name->value();
+//$wrapper->author->profile->field_name->set('New name');
 
 // Value of the node's summary in german language.
-$wrapper->language('de')->body->summary->value();
+//$wrapper->language('de')->body->summary->value();
 
 // Check whether we can edit node's author email address.
-$wrapper->author->mail->access('edit') ? TRUE : FALSE;
+//$wrapper->author->mail->access('edit') ? TRUE : FALSE;
 
 // Get roles of node's author.
-$wrapper->author->roles->optionsList();
+//$wrapper->author->roles->optionsList();
 
 // Set description of the node's first file in field field_files.
-$wrapper->field_files[0]->description = 'The first file';
-$wrapper->save();
+//$wrapper->field_files[0]->description = 'The first file';
+//$wrapper->save();
 
 // Get node object.
-$node = $wrapper->value();
+//$node = $wrapper->value();
 
 /**
 * Implements hook_entity_property_info_alter().
@@ -440,5 +440,5 @@ function well_entity_property_info_alter(&$info) {
 }
 
 // Wrapper to retrieve the name of the well author
-$wrapper = entity_metadata_wrapper('well', $entity);
-$wrapper->uid->name->value(array('sanitize' => TRUE));
+//$wrapper = entity_metadata_wrapper('well', $entity);
+//$wrapper->uid->name->value(array('sanitize' => TRUE));
