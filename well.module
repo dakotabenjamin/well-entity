@@ -10,435 +10,191 @@
 **/
 
 function well_entity_info() {
-  $return = array(
-    'well' => array(
-      'label' => t('Well'),
-      'plural label' => t('Wells'),
-      'description' => t('An entity type used to describe the watermonitor wells'),
-      'entity class' => 'Well',
-      'controller class' => 'WellController',
-      'base table' => 'well',
-      'fieldable' => TRUE,
-      'entity keys' => array(
-        'id' => 'wid',
-        'bundle' => 'name', /* see what to do about this */
-      ),
-      'bundle_keys' => array(
-        'bundle' => 'type',
-      ),
-      'bundles' => array(),
-      'load hook' => 'well_load',
-      'view modes' => array(
-        'full' => array(
-          'label' => t('Default'),
-          'custom settings' => FALSE,
+  $return['well'] = array(
+    'label' => t('Well'),
+    'plural label' => t('Wells'),
+    'description' => t('An entity type used to describe the watermonitor wells'),
+    'controller class' => 'WellController',
+    'base table' => 'well',
+    'fieldable' => TRUE,
+    'entity keys' => array(
+      'id' => 'wid',
+//        'bundle' => 'name', /* see what to do about this */
+    ),
+//      'bundle_keys' => array(
+//        'bundle' => 'type',
+//      ),
+    'bundles' => array(
+      'well' => array(
+        'label' => 'well'
+        'admin' => array(
+          'path' => 'admin/structure/well/manage',
+          'access arguments' => array('administer wells'),
         ),
       ),
-      'label callback' => 'entity_class_label',
-      'uri callback' => 'entity_class_uri',
-      'module' => 'well',
-      'access callback' => 'well_access',
-     ),
+    ),
+//      'load hook' => 'well_load',
+    'view modes' => array(
+      'full' => array(
+        'label' => t('Default'),
+        'custom settings' => FALSE,
+      ),
+    ),
+//      'label callback' => 'entity_class_label',
+    'uri callback' => 'entity_class_uri',
+//      'module' => 'well',
+//      'access callback' => 'well_access',
   );
-  $return['well_type'] = array(
-    'label' => t('Well Type'),
-    'entity class' => 'WellType',
-    'controller class' => 'WellTypeController',
-    'base table' => 'well_type',
-    'fieldable' => FALSE,
-    'bundle of' => 'well',
-    'exportable' => TRUE,
-    'entity keys' => array(
-      'id' => 'id',
-      'name' => 'type',
-      'label' => 'label',
-    ),
-    'module' => 'well',
-    // Enable the entity API's admin UI.
-    'admin ui' => array(
-      'path' => 'admin/structure/wells',
-      'file' => 'well.admin.inc',
-      'controller class' => 'WellTypeUIController',
-    ),
-    'access callback' => 'well_type_access',
-  ); 
+
   return $return;
 }
 
 /**
-  * Implements hook_entity_info_alter();
+  * Implements hook_uri()
   */
-function well_entity_info_alter(&$entity_info) {
-  foreach (well_types() as $type => $info) {
-    $entity_info['well']['bundles'][$type] = array(
-      'label' => $info->label,
-      'admin' => array(
-        'path' => 'admin/structure/wells/manage/%well_type',
-        'real path' => 'admin/structure/wells/manage/' . $type,
-        'bundle argument' => 4,
-      ),
-    );
-  }
+function well_uri($well){
+  return array(
+    'path' => 'well/' . $well->id,
+  );
 }
 
 /**
-* Implements hook_menu().
-*/
-function well_menu() {
-  $items = array();
+  * Implements hook_load()
+  * This function and the following loads the well entity
+  */
+function well_load($pid = NULL, $reset = FALSE){
+  $pids = (isset ($pid) ? array($pid) : array());
+  $well = well_load_multiple($pids, $reset);
+  return $well ? reset ($well) : FALSE;
+}
+ 
+function well_load_multiple($pids = array(), $conditions = array(), $reset = FALSE){
+  return entity_load('well', $pids, $conditions, $reset);
+}
 
-  $items['well/add'] = array(
-    'title' => 'Add well',
-    'page callback' => 'well_admin_add_page',
-    'access arguments' => array('administer well entities'),
-    'file' => 'well.admin.inc',
-    'type' => MENU_LOCAL_ACTION,
-    'tab_parent' => 'well',
-    'tab_root' => 'well', //check this. used to be 'task'
+
+/**
+  * Implements hook_menu()
+  *Here are a few ways to view the entities
+  */
+function well_menu(){
+  $items['admin/structure/well/manage'] = array(
+    'title' => 'Well Admin',
+    'description' => 'Manage well structure',
+    'page callback' => 'well_info',
+    'access arguments' => array('administer wells'),
   );
-
-  $task_uri = 'well/%well';
-  $task_uri_argument_position = 1;
-
-  $items[$well_uri] = array(
-    'title callback' => 'entity_label',
-    'title arguments' => array('well', $well_uri_argument_position),
-    'page callback' => 'well_view',
-    'page arguments' => array($well_uri_argument_position),
-    'access callback' => 'entity_access',
-    'access arguments' => array('view', 'well', $well_uri_argument_position),
-    'file' => 'well.pages.inc',
+  $items['well/%well'] = array(
+    'title callback' => 'well_page_title',
+    'title arguments' => array(1),
+    'page callback' => 'postit_page_view',
+    'page arguments' => array(1),
+    'access arguments' => array('view wells'),
+    'type' => MENU_CALLBACK,
   );
-
-  $items[$well_uri . '/view'] = array(
-    'title' => 'View',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -10,
+  $items['postit/add'] = array(
+    'title' => 'Add Well',
+    'page callback' => 'well_add',
+    'access arguments' => array('create well'),
   );
-
-  $items[$well_uri . '/delete'] = array(
-    'title' => 'Delete task',
-    'title callback' => 'well_label',
-    'title arguments' => array($well_uri_argument_position),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('well_delete_form', $well_uri_argument_position),
-    'access callback' => 'entity_access',
-    'access arguments' => array('edit', 'well', $well_uri_argument_position),
-    'file' => 'well.admin.inc',
-  );
-
-  $items[$task_uri . '/edit'] = array(
-    'title' => 'Edit',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('well_form', $well_uri_argument_position),
-    'access callback' => 'entity_access',
-    'access arguments' => array('edit', 'well', $well_uri_argument_position),
-    'file' => 'well.admin.inc',
-    'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-  );
-
-  foreach (well_types() as $type => $info) {
-    $items['well/add/' . $type] = array(
-      'title' => 'Add well',
-      'page callback' => 'well_add',
-      'page arguments' => array(2),
-      'access callback' => 'entity_access',
-      'access arguments' => array('create', 'well', $type),
-      'file' => 'well.admin.inc',
-    );
-  }
-
-  $items['admin/structure/wells/%well_type/delete'] = array(
-    'title' => 'Delete',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('well_type_form_delete_confirm', 4),
-    'access arguments' => array('administer well types'),
-    'weight' => 1,
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'well.admin.inc',
-  );
-
   return $items;
 }
-
 /**
-* Access callback for Well.
-*/
-function well_access($op, $well, $account = NULL, $entity_type = NULL) {
-  global $user;
-
-  if (!isset($account)) {
-    $account = $user;
-  }
-  switch ($op) {
-    case 'create':
-      return user_access('administer well entities', $account)
-          || user_access('create well entities', $account);
-    case 'view':
-      return user_access('administer well entities', $account)
-          || user_access('view well entities', $account);
-    case 'edit':
-      return user_access('administer well entities')
-          || user_access('edit any well entities')
-          || (user_access('edit own well entities') && ($well->uid == $account->uid)); //uid is userid
-  }
-}
-
-/**
-* Implements hook_permission().
-*/
-function well_permission() {
-  $permissions = array(
-    'administer well types' => array(
-      'title' => t('Administer well types'),
-      'description' => t('Allows users to configure well types and their fields.'),
+  * Implements hook_permission(). Gives permissions to administer and view wells
+  */
+function well_permission(){
+    return array(
+    'administer wells' =>  array(
+      'title' => t('Administer wells'),
       'restrict access' => TRUE,
     ),
-    'create well entities' => array(
-      'title' => t('Create wells'),
-      'description' => t('Allows users to create wells.'),
-      'restrict access' => TRUE,
-    ),
-    'view well entities' => array(
-      'title' => t('View wells'),
-      'description' => t('Allows users to view wells.'),
-      'restrict access' => TRUE,
-    ),
-    'edit any well entities' => array(
-      'title' => t('Edit any wells'),
-      'description' => t('Allows users to edit any wells.'),
-      'restrict access' => TRUE,
-    ),
-    'edit own wells entities' => array(
-      'title' => t('Edit own wells'),
-      'description' => t('Allows users to edit own wells.'),
-      'restrict access' => TRUE,
-    ),
-  );
-
-  return $permissions;
-}
-
-/**
-* Well class.
-*/
-class Well extends Entity {
-  protected function defaultLabel() {
-    return $this->title;
-  }
-
-  protected function defaultUri() {
-    return array('path' => 'well/' . $this->identifier());
-  }
-}
-
-class WellController extends EntityAPIController {
-
-  public function create(array $values = array()) {
-    global $user;
-    $values += array(
-      'title' => '',
-      'description' => '',
-      'created' => REQUEST_TIME,
-      'changed' => REQUEST_TIME,
-      'uid' => $user->uid,
-    );
-    return parent::create($values);
-  }
-
-  public function buildContent($entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
-    $wrapper = entity_metadata_wrapper('well', $entity);
-    $content['author'] = array('#markup' => t('Created by: !author', array('!author' => $wrapper->uid->name->value(array('sanitize' => TRUE)))));
-
-    // Make Description and Status themed like default fields.
-    $content['description'] = array(
-      '#theme' => 'field',
-      '#weight' => 0,
-      '#title' =>t('Description'),
-      '#access' => TRUE,
-      '#label_display' => 'above',
-      '#view_mode' => 'full',
-      '#language' => LANGUAGE_NONE,
-      '#field_name' => 'field_fake_description',
-      '#field_type' => 'text',
-      '#entity_type' => 'well',
-      '#bundle' => $entity->type,
-      '#items' => array(array('value' => $entity->description)),
-      '#formatter' => 'text_default',
-      0 => array('#markup' => check_plain($entity->description))
-    );
-
-    return parent::buildContent($entity, $view_mode, $langcode, $content);
-  }
-}
-
-/**
-* Well Type class.
-*/
-class WellType extends Entity {
-  public $type;
-  public $label;
-  public $weight = 0;
-
-  public function __construct($values = array()) {
-    parent::__construct($values, 'well_type');
-  }
-
-  function isLocked() {
-    return isset($this->status) && empty($this->is_new) && (($this->status & ENTITY_IN_CODE) || ($this->status & ENTITY_FIXED));
-  }
-}
-
-class WellTypeController extends EntityAPIControllerExportable {
-   public function create(array $values = array()) {
-    $values += array(
-      'label' => '',
-      'description' => '',
-    );
-    return parent::create($values);
-  }
-
-  /**
-   * Save Well Type.
-   */
-  public function save($entity, DatabaseTransaction $transaction = NULL) {
-    parent::save($entity, $transaction);
-    // Rebuild menu registry. We do not call menu_rebuild directly, but set
-    // variable that indicates rebuild in the end.
-    // @see _http://drupal.org/node/1399618
-    variable_set('menu_rebuild_needed', TRUE);
-  }
-}
-
-/**
-* Load a well.
-*/
-function well_load($wid, $reset = FALSE) {
-  $wells = well_load_multiple(array($wid), array(), $reset);
-  return reset($wells);
-}
-
-/**
-* Load multiple wells based on certain conditions.
-*/
-function well_load_multiple($wids = array(), $conditions = array(), $reset = FALSE) {
-  return entity_load('well', $wids, $conditions, $reset);
-}
-
-/**
-* Save well.
-*/
-function well_save($well) {
-  entity_save('well', $well);
-}
-
-/**
-* Delete single well.
-*/
-function well_delete($well) {
-  entity_delete('well', entity_id('well' ,$well));
-}
-
-/**
-* Delete multiple wells.
-*/
-function well_delete_multiple($well_ids) {
-  entity_delete_multiple('well', $well_ids);
-}
-
-/**
-* Load well Type.
-*/
-function well_type_load($well_type) {
-  return well_types($well_type);
-}
-
-/**
-* List of well Types.
-*/
-function well_types($type_name = NULL) {
-  $types = entity_load_multiple_by_name('well_type', isset($type_name) ? array($type_name) : FALSE);
-  return isset($type_name) ? reset($types) : $types;
-}
-
-/**
-* Save well type entity.
-*/
-function well_type_save($task_type) {
-  entity_save('well_type', $task_type);
-}
-
-/**
-* Delete single case type.
-*/
-function well_type_delete($task_type) {
-  entity_delete('well_type', entity_id('well_type' ,$task_type));
-}
-
-/**
-* Delete multiple case types.
-*/
-function well_type_delete_multiple($task_type_ids) {
-  entity_delete_multiple('well_type', $task_type_ids);
-}
-
-// Create wrapper around the node.
-//$wrapper = entity_metadata_wrapper('node', $node);
-
-// We can do it also using only $nid.
-//$wrapper = entity_metadata_wrapper('node', $nid); //what is $nid??
-
-// Get the value of field_name of the nodes author's profile.
-//$wrapper->author->profile->field_name->value();
-//$wrapper->author->profile->field_name->set('New name');
-
-// Value of the node's summary in german language.
-//$wrapper->language('de')->body->summary->value();
-
-// Check whether we can edit node's author email address.
-//$wrapper->author->mail->access('edit') ? TRUE : FALSE;
-
-// Get roles of node's author.
-//$wrapper->author->roles->optionsList();
-
-// Set description of the node's first file in field field_files.
-//$wrapper->field_files[0]->description = 'The first file';
-//$wrapper->save();
-
-// Get node object.
-//$node = $wrapper->value();
-
-/**
-* Implements hook_entity_property_info_alter().
-*/
-function well_entity_property_info_alter(&$info) {
-  $properties = &$info['well']['properties'];
-  $properties['created'] = array(
-    'label' => t("Date created"),
-    'type' => 'date',
-    'description' => t("The date the node was posted."),
-    'setter callback' => 'entity_property_verbatim_set',
-    'setter permission' => 'administer nodes',
-    'schema field' => 'created',
-  );
-  $properties['changed'] = array(
-    'label' => t("Date changed"),
-    'type' => 'date',
-    'schema field' => 'changed',
-    'description' => t("The date the node was most recently updated."),
-  );
-  $properties['uid'] = array(
-    'label' => t("Author"),
-    'type' => 'user',
-    'description' => t("The author of the well."),
-    'setter callback' => 'entity_property_verbatim_set',
-    'setter permission' => 'administer well entities',
-    'required' => TRUE,
-    'schema field' => 'uid',
+    'view wells' => array(
+      'title' => t('View Wells'),
+    )
   );
 }
+ 
+/**
+  * Implements hook_info(). provides basic info. 
+  */
+function well_info() {
+  return ('Welcome to the administration page for the Wells');
+}
+ 
+function well_page_title($well){
+  return $well->wid;
+}
+ 
+function well_page_view($well, $view_mode = 'full'){
+  $well->content = array(); // $well->content is an array of each field of content in the well entity
+ 
+  // Build fields content.
+  field_attach_prepare_view('well', array($well->wid => $well), $view_mode);
+  entity_prepare_view('well', array($well->wid => $well));
+  $well->content += field_attach_view('well', $well, $view_mode);
+ 
+  return $well->content;
+}
+ 
+ 
+function well_field_extra_fields() {
+  $return = array();
+  $return['well']['well'] = array(
+    'form' => array(
+      'wellname' => array(
+        'label' => t('wellname'),
+        'description' => t('Well Name'),
+      ),
+    ),
+  );
+ 
+  return $return;
+}
 
-// Wrapper to retrieve the name of the well author
-//$wrapper = entity_metadata_wrapper('well', $entity);
-//$wrapper->uid->name->value(array('sanitize' => TRUE));
+/**
+  * Implements hook_add(). adds a new well entity. 
+  */
+
+function well_add() {
+  $well = (object) array (
+    'wid' => '',
+    'type' => 'well',
+    'wellname' => '',
+  );
+  
+  return drupal_get_form('well_add_form', $well);
+}
+ 
+ 
+function well_add_form($form, &$form_state, $well) {
+  $form['wellname'] = array(
+    '#type' => 'textfield',
+    '#title' => t('wellname'),
+    '#required' => TRUE,
+  );
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  
+  field_attach_form('well', $well, $form, $form_state);
+  
+  return $form;
+}
+
+function well_add_form_validate($form, &$form_state) {
+  $well_submisttion = (object) $form_state['values'];
+  field_attach_form_validate('well', $well_submisttion, $form, $form_state);
+}
+ 
+function well_add_form_submit($form, &$form_state) {
+  $well_submission = (object) $form_state['values'];
+  field_attach_submit('well', $well_submission, $form, $form_state);
+  $well = well_save($well_submission);
+  $form_state['redirect'] = "well/$well->wid";
+}
+
+function well_save(&$well) {
+  return entity_get_controller('well')->save($well);
+}
