@@ -26,7 +26,7 @@ function well_entity_info() {
 //      ),
     'bundles' => array(
       'well' => array(
-        'label' => 'well'
+        'label' => 'well',
         'admin' => array(
           'path' => 'admin/structure/well/manage',
           'access arguments' => array('administer wells'),
