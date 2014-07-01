@@ -87,12 +87,12 @@ function well_menu(){
   $items['well/%well'] = array(
     'title callback' => 'well_page_title',
     'title arguments' => array(1),
-    'page callback' => 'postit_page_view',
+    'page callback' => 'well_page_view',
     'page arguments' => array(1),
     'access arguments' => array('view wells'),
     'type' => MENU_CALLBACK,
   );
-  $items['postit/add'] = array(
+  $items['well/add'] = array(
     'title' => 'Add Well',
     'page callback' => 'well_add',
     'access arguments' => array('create well'),
