@@ -19,11 +19,8 @@ function well_entity_info() {
     'fieldable' => TRUE,
     'entity keys' => array(
       'id' => 'wid',
-//        'bundle' => 'name', /* see what to do about this */
     ),
-//      'bundle_keys' => array(
-//        'bundle' => 'type',
-//      ),
+
     'bundles' => array(
       'well' => array(
         'label' => 'well',
@@ -33,17 +30,13 @@ function well_entity_info() {
         ),
       ),
     ),
-//      'load hook' => 'well_load',
     'view modes' => array(
       'full' => array(
         'label' => t('Default'),
         'custom settings' => FALSE,
       ),
     ),
-//      'label callback' => 'entity_class_label',
     'uri callback' => 'entity_class_uri',
-//      'module' => 'well',
-//      'access callback' => 'well_access',
   );
 
   return $return;
@@ -62,14 +55,14 @@ function well_uri($well){
   * Implements hook_load()
   * This function and the following loads the well entity
   */
-function well_load($pid = NULL, $reset = FALSE){
-  $pids = (isset ($pid) ? array($pid) : array());
-  $well = well_load_multiple($pids, $reset);
+function well_load($wid = NULL, $reset = FALSE){
+  $wids = (isset ($wid) ? array($wid) : array());
+  $well = well_load_multiple($wids, $reset);
   return $well ? reset ($well) : FALSE;
 }
  
-function well_load_multiple($pids = array(), $conditions = array(), $reset = FALSE){
-  return entity_load('well', $pids, $conditions, $reset);
+function well_load_multiple($wids = array(), $conditions = array(), $reset = FALSE){
+  return entity_load('well', $wids, $conditions, $reset);
 }
 
 
@@ -122,7 +115,7 @@ function well_info() {
 }
  
 function well_page_title($well){
-  return $well->wid;
+  return $well->wellname;
 }
  
 function well_page_view($well, $view_mode = 'full'){
@@ -173,12 +166,13 @@ function well_add_form($form, &$form_state, $well) {
     '#required' => TRUE,
   );
   
+  field_attach_form('well', $well, $form, $form_state);
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
   );
   
-  field_attach_form('well', $well, $form, $form_state);
   
   return $form;
 }
