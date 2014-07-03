@@ -13,7 +13,7 @@ function well_entity_info() {
   $return['well'] = array(
     'label' => t('Well'),
     'plural label' => t('Wells'),
-    'module' => 'well'
+    'module' => 'well',
     'description' => t('An entity type used to describe the watermonitor wells'),
     'controller class' => 'WellController',
     'views controller class' => 'WellViewsController',
