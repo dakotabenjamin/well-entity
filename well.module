@@ -13,8 +13,10 @@ function well_entity_info() {
   $return['well'] = array(
     'label' => t('Well'),
     'plural label' => t('Wells'),
+    'module' => 'well'
     'description' => t('An entity type used to describe the watermonitor wells'),
     'controller class' => 'WellController',
+    'views controller class' => 'WellViewsController',
     'base table' => 'well',
     'fieldable' => TRUE,
     'entity keys' => array(
@@ -41,6 +43,7 @@ function well_entity_info() {
 
   return $return;
 }
+
 
 /**
   * Implements hook_uri()
@@ -200,5 +203,25 @@ class WellController extends EntityAPIController {
     module_invoke_all('entity_insert', 'well', $well);
     return $well;
   }
-
 } 
+
+/**
+ * Well Views Controller class.
+ */
+class WellViewsController extends EntityDefaultViewsController {
+  /**
+   * Edit or add extra fields to views_data().
+   */
+  public function views_data() {
+    $data = parent::views_data();
+    // Add your custom data here
+    /*
+    * Example: change the handler of a field
+    * if the 'created' field is a unix timestamp in the database,
+    * Entity API will set the handler to views_handler_field_numeric,
+    * change this to the views date handler
+    */
+    $data['well']['created']['field']['handler'] = 'views_handler_field_date';
+    return $data;
+  }
+}
